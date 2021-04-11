@@ -5,6 +5,7 @@ import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
+from sqlalchemy.sql import exists
 
 from flask import Flask, jsonify
 
@@ -17,14 +18,16 @@ Base.classes.keys()
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-session = Session(engine)
-
 #weather app
 app = Flask(__name__)
+
+session = Session(engine)
 
 recent_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
 year_ago_date = dt.date(2017, 8, 23) - dt.timedelta(days = 365)
+
+
 
 @app.route("/")
 def home():
@@ -33,12 +36,14 @@ def home():
             f"/api/v1.0/precipitation<br/>"
             f"/api/v1.0/stations<br/>"
             f"/api/v1.0/tobs<br/>"
-            f"/api/v1.0/<start> (input YYYY-MM-DD)<br/>"
-            f"/api/v1.0/<start>/<end> (input YYYY-MM-DD/YYYY-MM-DD)"
+            f"/api/v1.0/start (input YYYY-MM-DD)<br/>"
+            f"/api/v1.0/start/end (input YYYY-MM-DD/YYYY-MM-DD)")
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
       
+    session = Session(engine)
+    
     results = session.query(Measurement.date, Measurement.prcp).\
         filter(func.strftime('%Y-%m-%d',Measurement.date) >= year_ago_date).order_by(Measurement.date).all()
     
@@ -46,17 +51,20 @@ def precipitation():
     for result in results:
         precipDict = {result.date: result.prcp}
         precipData.append(precipDict)
-
+        
     return jsonify(precipData)
 
 @app.route("/api/v1.0/stations")
 def stations():
+    session = Session(engine)
     results = session.query(Station.name).all()
     all_stations = list(np.ravel(results))
     return jsonify(all_stations)
 
 @app.route("/api/v1.0/tobs")
 def tobs():
+    
+    session = Session(engine)
 
     results = (session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == 'USC00519281')
                       .filter(Measurement.date >= year_ago_date)
@@ -72,6 +80,9 @@ def tobs():
 
 @app.route("/api/v1.0/<start>")
 def start(startDate):
+    
+    session = Session(engine)
+    
     sel = [Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
     results =  (session.query(*sel)
@@ -98,6 +109,9 @@ def start(startDate):
 
 @app.route("/api/v1.0/<start>/<end>")
 def startEnd(startDate, endDate):
+    
+    session = Session(engine)
+    
     sel = [Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
     results =  (session.query(*sel)
@@ -132,3 +146,4 @@ def startEnd(startDate, endDate):
 
 if __name__ == "__main__":
     app.run(debug=True)
+            
