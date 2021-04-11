@@ -122,7 +122,7 @@ def startEnd(startDate, endDate):
             return jsonify(dates)
         
     if not valid_entry_start and not valid_entry_end:
-    	return jsonify({"error": f"Input start {startDate} and end date {endDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
+    	return jsonify({"error": f"Input start date {startDate} and end date {endDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
 
     if not valid_entry_start:
     	return jsonify({"error": f"Input start date {startDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
