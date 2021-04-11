@@ -30,9 +30,9 @@ year_ago_date = dt.date(2017, 8, 23) - dt.timedelta(days = 365)
 def home():
     return (f"Surf's Up!: Hawai'i Climate API<br/>"
             f"Available Routes:<br/>"
-            f"/api/v1.0/precipitation ~~ the latest year of precipitation data<br/>"
-            f"/api/v1.0/stations ~~~ a list of all weather observation stations<br/>"
-            f"/api/v1.0/tobs ~~ the latest year of temperature observation data<br/>"
+            f"/api/v1.0/precipitation ~~ most recent year of precipitation data <br/>"
+            f"/api/v1.0/stations ~~~ all weather observation stations<br/>"
+            f"/api/v1.0/tobs ~~ most recent year of temperature observation data<br/>"
             f"/api/v1.0/<start> ~~ low, high, and average temp for date given and each date after (input YYYY-MM-DD) <br/>"
             f"/api/v1.0/<start>/<end> ~~ low, high, and average temp for date given and each date up to and including end date (input YYYY-MM-DD) <br/>"
 
@@ -58,14 +58,14 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def tobs():
 
-    results = (session.query(Measurement.date, Measurement.tobs, Measurement.station)
-                      .filter(Measurement.date > yearBefore)
+    results = (session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == 'USC00519281')
+                      .filter(Measurement.date >= year_ago_date)
                       .order_by(Measurement.date)
                       .all())
 
     tempData = []
     for result in results:
-        tempDict = {result.date: result.tobs, "Station": result.station}
+        tempDict = {result.date: result.tobs}
         tempData.append(tempDict)
 
     return jsonify(tempData)
