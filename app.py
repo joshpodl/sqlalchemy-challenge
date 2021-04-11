@@ -79,23 +79,20 @@ def tobs():
     return jsonify(tempData)
 
 @app.route("/api/v1.0/<start>")
-def start(startDate):
+def start_only(start):
     
     session = Session(engine)
     
-    sel = [Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
-
-    results =  (session.query(*sel)
-                       .filter(func.strftime("%Y-%m-%d", Measurement.date) >= startDate)
-                       .group_by(Measurement.date)
-                       .all())
-
-    dates = []
-    
-    valid_entry = session.query(exists().where(Measurement.date == startDate)).scalar()
+    valid_entry = session.query(exists().where(Measurement.date == start)).scalar()
     
     if valid_entry: 
                       
+        results =  (session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs))
+                       .filter(func.strftime("%Y-%m-%d", Measurement.date) >= start)
+                       .group_by(Measurement.date)
+                       .all())
+        
+        dates = []
         for result in results:
             date_dict = {}
             date_dict["Date"] = result[0]
@@ -103,29 +100,27 @@ def start(startDate):
             date_dict["Avg Temp"] = result[2]
             date_dict["High Temp"] = result[3]
             dates.append(date_dict)
-            return jsonify(dates)
+        return jsonify(dates)
     
-    return jsonify({"error": f"Input date {startDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
+    return jsonify({"error": f"Input date {start} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
 
 @app.route("/api/v1.0/<start>/<end>")
-def startEnd(startDate, endDate):
+def start_end(start, end):
     
     session = Session(engine)
     
-    sel = [Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
+    valid_entry_start = session.query(exists().where(Measurement.date == start)).scalar() 
+    valid_entry_end = session.query(exists().where(Measurement.date == end)).scalar()
 
-    results =  (session.query(*sel)
-                       .filter(func.strftime("%Y-%m-%d", Measurement.date) >= startDate)
-                       .filter(func.strftime("%Y-%m-%d", Measurement.date) <= endDate)
+    if valid_entry_start and valid_entry_end:
+        
+        results =  (session.query(Measurement.date, func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs))
+                       .filter(func.strftime("%Y-%m-%d", Measurement.date) >= start)
+                       .filter(func.strftime("%Y-%m-%d", Measurement.date) <= end)
                        .group_by(Measurement.date)
                        .all())
-
-    dates = [] 
-
-    valid_entry_start = session.query(exists().where(Measurement.date == startDate)).scalar() 
-    valid_entry_end = session.query(exists().where(Measurement.date == endDate)).scalar()
-
-    if valid_entry_start and valid_entry_end:                     
+        
+        dates = []                      
         for result in results:
             date_dict = {}
             date_dict["Date"] = result[0]
@@ -133,16 +128,16 @@ def startEnd(startDate, endDate):
             date_dict["Avg Temp"] = result[2]
             date_dict["High Temp"] = result[3]
             dates.append(date_dict)
-            return jsonify(dates)
+        return jsonify(dates)
         
     if not valid_entry_start and not valid_entry_end:
-    	return jsonify({"error": f"Input start date {startDate} and end date {endDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
+    	return jsonify({"error": f"Input start date {start} and end date {end} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
 
     if not valid_entry_start:
-    	return jsonify({"error": f"Input start date {startDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
+    	return jsonify({"error": f"Input start date {start} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
 
     if not valid_entry_end:
-    	return jsonify({"error": f"Input end date {endDate} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
+    	return jsonify({"error": f"Input end date {end} not valid. Date range is 2010-01-01 to 2017-08-23"}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)
