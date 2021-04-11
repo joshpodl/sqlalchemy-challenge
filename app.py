@@ -30,11 +30,11 @@ year_ago_date = dt.date(2017, 8, 23) - dt.timedelta(days = 365)
 def home():
     return (f"Surf's Up!: Hawai'i Climate API<br/>"
             f"Available Routes:<br/>"
-            f"/api/v1.0/precipitation ~~ most recent year of precipitation data <br/>"
-            f"/api/v1.0/stations ~~~ all weather observation stations<br/>"
-            f"/api/v1.0/tobs ~~ most recent year of temperature observation data<br/>"
-            f"/api/v1.0/<start> ~~ low, high, and average temp for date given and each date after (input YYYY-MM-DD) <br/>"
-            f"/api/v1.0/<start>/<end> ~~ low, high, and average temp for date given and each date up to and including end date (input YYYY-MM-DD) <br/>"
+            f"/api/v1.0/precipitation<br/>"
+            f"/api/v1.0/stations<br/>"
+            f"/api/v1.0/tobs<br/>"
+            f"/api/v1.0/<start> (input YYYY-MM-DD)<br/>"
+            f"/api/v1.0/<start>/<end> (input YYYY-MM-DD/YYYY-MM-DD)"
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
